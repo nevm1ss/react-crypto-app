@@ -1,50 +1,23 @@
-import { Layout, Card, Statistic, List, Typography, Spin, Tag } from "antd";
+import { Layout, Card, Statistic, List, Typography, Tag } from "antd";
 import { ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons';
-import {useEffect, useState} from "react";
-import {fakeFetchCrypto, fetchAssets} from "../../api.js";
-import {capitalize, percentDifference} from '../../utilus.js'
+import {useContext} from "react";
+import {capitalize} from '../../utilus.js'
+import CryptoContext from "../../context/crypto-context.jsx";
 
 const siderStyle = {
   padding: '1rem',
 };
 
 export default function AppSider() {
-  const [loading, setLoading] = useState(false)
-  const [crypto, setCrypto] = useState([])
-  const [assets, setAssets] = useState([])
+  const { assets } = useContext(CryptoContext)
 
-  useEffect(() => {
-     async function preload() {
-       setLoading(true)
-       const { result } = await fakeFetchCrypto()
-       const assets = await fetchAssets()
-
-       setAssets(assets.map(asset => {
-         const coin = result.find((c) => c.id === asset.id)
-         return {
-           grow: asset.price < coin.price,
-           growPercent: percentDifference(asset.price, coin.price),
-           totalAmount: asset.amount * coin.price,
-           totalProfit: asset.amount * coin.price - asset.amount * asset.price,
-           ...asset
-         }
-       }))
-       setCrypto(result)
-       setLoading(false)
-     }
-     preload()
-  }, []);
-
-  if (loading){
-    return <Spin fullscreen />
-  }
   return (
     <Layout.Sider width="25%" style={siderStyle}>
       {assets.map((asset) => (
         <Card key={asset.id} bordered={false} style={{marginBottom: '1rem'}}>
           <Statistic
             title={capitalize(asset.id)}
-            value={asset.totalAmount}
+            value={asset.totalPrice}
             precision={2}
             valueStyle={{ color: asset.grow ? '#3f8600' : '#cf1322'}}
             prefix={asset.grow ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
@@ -57,7 +30,7 @@ export default function AppSider() {
               {title: 'Asset Amount', value: asset.amount, isPlain: true},
               // {title: 'difference', value: asset.growPercent},
             ]}
-            renderItem={(item) => (
+            renderItem = {(item) => (
               <List.Item>
                 <span>{item.title}</span>
                 <span>
@@ -76,17 +49,6 @@ export default function AppSider() {
           />
         </Card>
       ))}
-      {/*<Card bordered={false}>*/}
-      {/*  <Statistic*/}
-      {/*    title="Idle"*/}
-      {/*    value={9.3}*/}
-      {/*    precision={2}*/}
-      {/*    valueStyle={{ color: '#cf1322' }}*/}
-      {/*    prefix={<ArrowDownOutlined />}*/}
-      {/*    suffix="%"*/}
-      {/*  />*/}
-      {/*</Card>*/}
-      );
     </Layout.Sider>
 
   )
